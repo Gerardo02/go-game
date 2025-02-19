@@ -3,10 +3,22 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "",
+    "activeFile": "tileset/tileset.tsx",
     "expandedProjectPaths": [
     ],
     "fileStates": {
+        "spawn.json": {
+            "scale": 2,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 310,
+                "y": 300.25
+            }
+        },
+        "tileset/tileset.tsx": {
+            "scaleInDock": 1.5,
+            "scaleInEditor": 2
+        }
     },
     "last.imagePath": "/home/gerardo/Documents/assets/ninja-adventure/background-elements",
     "map.height": 80,
@@ -15,9 +27,13 @@
     "map.tileWidth": 16,
     "map.width": 100,
     "openFiles": [
+        "spawn.json",
+        "tileset/tileset.tsx"
     ],
     "project": "concept.tiled-project",
     "recentFiles": [
+        "spawn.json",
+        "tileset/tileset.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
