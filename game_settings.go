@@ -2,11 +2,13 @@ package main
 
 import (
 	"concept/entities"
+	"fmt"
 	"image"
 	"image/color"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 type Game struct {
@@ -14,6 +16,7 @@ type Game struct {
 	Enemies      []*entities.Enemy
 	Potions      []*entities.Potion
 	TilemapJSON  *TilemapJSON
+	tilesets     []Tileset
 	TilemapImage *ebiten.Image
 	Camera       *Camera
 }
@@ -73,27 +76,26 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{120, 180, 255, 255})
 
 	opts := ebiten.DrawImageOptions{}
+	for i, layer := range g.TilemapJSON.Layers {
+		for j, id := range layer.Data {
+			if id == 0 {
+				continue
+			}
 
-	for _, layer := range g.TilemapJSON.Layers {
-		for index, id := range layer.Data {
-			x := index % layer.Width
-			y := index / layer.Width
+			x := j % layer.Width
+			y := j / layer.Width
 
 			x *= 16
 			y *= 16
 
-			srcX := (id - 1) % 28
-			srcY := (id - 1) / 28
-
-			srcX *= 16
-			srcY *= 16
+			img := g.tilesets[i].Img(id)
 
 			opts.GeoM.Translate(float64(x), float64(y))
+			opts.GeoM.Translate(0.0, -(float64(img.Bounds().Dy()) + 16.0))
 			opts.GeoM.Translate(g.Camera.X, g.Camera.Y)
-			screen.DrawImage(
-				g.TilemapImage.SubImage(image.Rect(srcX, srcY, srcX+16, srcY+16)).(*ebiten.Image),
-				&opts,
-			)
+
+			screen.DrawImage(img, &opts)
+
 			opts.GeoM.Reset()
 		}
 	}
@@ -126,6 +128,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		)
 		opts.GeoM.Reset()
 	}
+
+	drawFPSTPS(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -137,6 +141,7 @@ func NewGameSetting(
 	enemieImg *ebiten.Image,
 	potionImg *ebiten.Image,
 	tilemapJSON *TilemapJSON,
+	tilesets []Tileset,
 	tileImg *ebiten.Image,
 	camera *Camera,
 ) *Game {
@@ -186,7 +191,13 @@ func NewGameSetting(
 			},
 		},
 		TilemapJSON:  tilemapJSON,
+		tilesets:     tilesets,
 		TilemapImage: tileImg,
 		Camera:       camera,
 	}
+}
+
+func drawFPSTPS(screen *ebiten.Image) {
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("FPS: %.3f", ebiten.ActualFPS()), 0, 0)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("TPS: %.3f", ebiten.ActualTPS()), 0, 20)
 }
