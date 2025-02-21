@@ -3,14 +3,16 @@ package main
 import "math"
 
 type Camera struct {
-	X float64
-	Y float64
+	X       float64
+	Y       float64
+	YOffset float64
 }
 
 func NewCamera(x, y float64) *Camera {
 	return &Camera{
-		X: x,
-		Y: y,
+		X:       x,
+		Y:       y,
+		YOffset: 32.0,
 	}
 }
 
@@ -23,7 +25,7 @@ func (c *Camera) Constraint(
 	tilemapWidthPixels, tilemapHeightPixels, screenWidth, screenHeight float64,
 ) {
 	c.X = math.Min(c.X, 0.0)
-	c.Y = math.Min(c.Y, 0.0)
+	c.Y = math.Min(c.Y, c.YOffset)
 
 	c.X = math.Max(c.X, screenWidth-tilemapWidthPixels)
 	c.Y = math.Max(c.Y, screenHeight-tilemapHeightPixels)

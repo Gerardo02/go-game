@@ -6,4 +6,6 @@ type Sprite struct {
 	Img *ebiten.Image
 	X   float64
 	Y   float64
+	DX  float64
+	DY  float64
 }

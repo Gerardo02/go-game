@@ -8,7 +8,7 @@
  "margin":0,
  "name":"buildings",
  "spacing":0,
- "tilecount":5,
+ "tilecount":6,
  "tiledversion":"1.11.2",
  "tileheight":48,
  "tiles":[
@@ -37,7 +37,13 @@
          "imagewidth":32
         }, 
         {
-         "id":4,
+         "id":5,
+         "image":"..\/..\/sprites\/buildings\/building6.png",
+         "imageheight":48,
+         "imagewidth":64
+        }, 
+        {
+         "id":6,
          "image":"..\/..\/sprites\/buildings\/building5.png",
          "imageheight":32,
          "imagewidth":32

@@ -31,7 +31,7 @@ type UniformTilesetJSON struct {
 }
 
 type DynTileset struct {
-	imgs []*ebiten.Image
+	imgs map[int]*ebiten.Image
 	gid  int
 }
 
@@ -77,7 +77,7 @@ func NewTileSet(path string, gid int) (Tileset, error) {
 
 		dynTileset := DynTileset{
 			gid:  gid,
-			imgs: make([]*ebiten.Image, 0),
+			imgs: make(map[int]*ebiten.Image),
 		}
 
 		for _, tileJSON := range dynTilesetJSON.Tiles {
@@ -93,7 +93,7 @@ func NewTileSet(path string, gid int) (Tileset, error) {
 				return nil, err
 			}
 
-			dynTileset.imgs = append(dynTileset.imgs, img)
+			dynTileset.imgs[tileJSON.ID] = img
 		}
 		return &dynTileset, nil
 

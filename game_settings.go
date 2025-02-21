@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type Game struct {
@@ -18,45 +18,102 @@ type Game struct {
 	TilemapJSON  *TilemapJSON
 	tilesets     []Tileset
 	TilemapImage *ebiten.Image
+	Colliders    []image.Rectangle
 	Camera       *Camera
+}
+
+func CheckXCollisions(colliders []image.Rectangle, entitie *entities.Sprite) {
+	for _, collider := range colliders {
+		if collider.Overlaps(
+			image.Rect(
+				int(entitie.X),
+				int(entitie.Y),
+				int(entitie.X+16.0),
+				int(entitie.Y+16.0),
+			),
+		) {
+			if entitie.DX > 0.0 {
+				entitie.X = float64(collider.Min.X) - 16.0
+			} else if entitie.DX < 0.0 {
+				entitie.X = float64(collider.Max.X)
+			}
+		}
+	}
+}
+
+func CheckYCollisions(colliders []image.Rectangle, entitie *entities.Sprite) {
+	for _, collider := range colliders {
+		if collider.Overlaps(
+			image.Rect(
+				int(entitie.X),
+				int(entitie.Y),
+				int(entitie.X+16.0),
+				int(entitie.Y+16.0),
+			),
+		) {
+			if entitie.DY > 0.0 {
+				entitie.Y = float64(collider.Min.Y) - 16.0
+			} else if entitie.DY < 0.0 {
+				entitie.Y = float64(collider.Max.Y)
+			}
+		}
+	}
 }
 
 func (g *Game) Update() error {
 	// react to inputs (key presses)
 
+	g.Player.DX = 0
+	g.Player.DY = 0
+
 	if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		g.Player.X += 2
+		g.Player.DX = 4
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		g.Player.X -= 2
+		g.Player.DX = -4
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
-		g.Player.Y -= 2
+		g.Player.DY = -4
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyDown) {
-		g.Player.Y += 2
+		g.Player.DY = 4
 	}
 
+	g.Player.X += g.Player.DX
+	CheckXCollisions(g.Colliders, g.Player.Sprite)
+
+	g.Player.Y += g.Player.DY
+	CheckYCollisions(g.Colliders, g.Player.Sprite)
+
 	for _, enemy := range g.Enemies {
+		enemy.DX = 0.0
+		enemy.DY = 0.0
+
 		if enemy.FollowsPlayer {
 			if enemy.X < g.Player.X {
-				enemy.X += 1
+				enemy.DX = 1
 			} else if enemy.X > g.Player.X {
-				enemy.X -= 1
+				enemy.DX = -1
 			}
 
 			if enemy.Y < g.Player.Y {
-				enemy.Y += 1
+				enemy.DY = 1
 			} else if enemy.Y > g.Player.Y {
-				enemy.Y -= 1
+				enemy.DY = -1
 			}
 		}
+
+		enemy.X += enemy.DX
+		CheckXCollisions(g.Colliders, enemy.Sprite)
+
+		enemy.Y += enemy.DY
+		CheckYCollisions(g.Colliders, enemy.Sprite)
+
 	}
 
 	for _, potion := range g.Potions {
 		if g.Player.X >= potion.X {
 			g.Player.Health += potion.HealingPoints
-			log.Printf("Picked up a potion %d", g.Player.Health)
 		}
 	}
 
@@ -76,6 +133,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{120, 180, 255, 255})
 
 	opts := ebiten.DrawImageOptions{}
+	defer opts.GeoM.Reset()
 	for i, layer := range g.TilemapJSON.Layers {
 		for j, id := range layer.Data {
 			if id == 0 {
@@ -129,11 +187,25 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		opts.GeoM.Reset()
 	}
 
+	for _, collider := range g.Colliders {
+		vector.StrokeRect(
+			screen,
+			float32(collider.Min.X)+float32(g.Camera.X),
+			float32(collider.Min.Y)+float32(g.Camera.Y),
+			float32(collider.Dx()),
+			float32(collider.Dy()),
+			1.0,
+			color.RGBA{255, 0, 0, 255},
+			true,
+		)
+	}
+
 	drawFPSTPS(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return 320, 240
+	// return ebiten.WindowSize()
 }
 
 func NewGameSetting(
@@ -161,7 +233,7 @@ func NewGameSetting(
 					X:   50.0,
 					Y:   50.0,
 				},
-				FollowsPlayer: false,
+				FollowsPlayer: true,
 			},
 			{
 				Sprite: &entities.Sprite{
@@ -194,6 +266,9 @@ func NewGameSetting(
 		tilesets:     tilesets,
 		TilemapImage: tileImg,
 		Camera:       camera,
+		Colliders: []image.Rectangle{
+			image.Rect(100, 100, 116, 116),
+		},
 	}
 }
 
